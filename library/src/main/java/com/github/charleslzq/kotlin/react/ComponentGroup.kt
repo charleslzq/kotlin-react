@@ -12,28 +12,17 @@ open class ComponentGroup<out V, S>(
         private val config: List<Sub<V, S, *, *, *>>
 ) : Component<V, S>(parentView, parentState)
         where V : View {
-    val children = init()
+    private val children = render()
 
-    private fun init() = config.flatMap { sub ->
+    private fun render() = config.flatMap { sub ->
         val subViews = sub.findViews(view)
         val subStates = (1..subViews.size).map { sub.mapStates(store, it - 1) }
         (1..subViews.size).map { sub.target.constructors.first().call(subViews[it - 1], subStates[it - 1]) }
     }.toMutableList()
 
-    fun reInit() {
+    fun reRenderChildren() {
         children.clear()
-        children.addAll(init())
-    }
-
-    inline fun <reified T, SV, SS> getChild(index: Int = 0): T where T : Component<SV, SS> {
-        return children.mapNotNull { getChildAs<T>(it) }[index]
-    }
-
-    inline fun <reified T> getChildAs(child: Any): T? {
-        return when (child is T) {
-            true -> child as T
-            false -> null
-        }
+        children.addAll(render())
     }
 
     class Sub<in V, S, T, out SV, SS>(
