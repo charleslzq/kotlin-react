@@ -2,7 +2,6 @@ package com.github.charleslzq.kotlin.react
 
 import android.view.View
 import com.github.charleslzq.kotlin.react.ObservableStatus.Companion.getDelegate
-import kotlin.reflect.KProperty0
 import kotlin.reflect.KProperty1
 
 /**
@@ -12,14 +11,14 @@ open class Component<out V, S>(
         val view: V,
         val store: S
 ) where V : View {
-    fun <P> renderBy(property: KProperty1<S, P>, predicate: () -> Boolean = { true }, handler: (P) -> Unit) {
+    fun <P> renderBy(property: KProperty1<S, P>, guard: () -> Boolean = { true }, handler: (P) -> Unit) {
         val delegate = getDelegate(property, store)
         if (delegate != null) {
-            if (predicate()) {
+            if (guard()) {
                 handler(property.get(store))
             }
             delegate.onChange {
-                if (predicate()) {
+                if (guard()) {
                     handler(property.get(store))
                 }
             }
@@ -28,25 +27,9 @@ open class Component<out V, S>(
         }
     }
 
-    fun <P> renderBy(property: KProperty0<P>, predicate: () -> Boolean = { true }, handler: (P) -> Unit) {
-        val delegate = getDelegate(property)
-        if (delegate != null) {
-            if (predicate()) {
-                handler(property.get())
-            }
-            delegate.onChange {
-                if (predicate()) {
-                    handler(property.get())
-                }
-            }
-        } else {
-            throw IllegalAccessException("Not Observable Property, Can't renderBy")
-        }
-    }
-
-    fun renderByMulti(vararg property: KProperty0<*>, predicate: () -> Boolean = { true }, handler: () -> Unit) {
+    fun renderByMulti(vararg property: KProperty1<S, *>, guard: () -> Boolean = { true }, handler: () -> Unit) {
         property.forEach {
-            renderBy(it, predicate, { handler() })
+            renderBy(it, guard, { handler() })
         }
     }
 }
