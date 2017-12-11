@@ -11,7 +11,7 @@ open class Component<out V, S>(
         val view: V,
         val store: S
 ) where V : View {
-    fun <P> renderBy(property: KProperty1<S, P>, guard: () -> Boolean = { true }, handler: (P) -> Unit) {
+    fun <P> render(property: KProperty1<S, P>, guard: () -> Boolean = { true }, handler: (P) -> Unit) {
         val delegate = getDelegate(property, store)
         if (delegate != null) {
             if (guard()) {
@@ -23,13 +23,7 @@ open class Component<out V, S>(
                 }
             }
         } else {
-            throw IllegalAccessException("Not Observable Property, Can't renderBy")
-        }
-    }
-
-    fun renderByMulti(vararg property: KProperty1<S, *>, guard: () -> Boolean = { true }, handler: () -> Unit) {
-        property.forEach {
-            renderBy(it, guard, { handler() })
+            throw IllegalAccessException("Not Observable Property, Can't render")
         }
     }
 }
