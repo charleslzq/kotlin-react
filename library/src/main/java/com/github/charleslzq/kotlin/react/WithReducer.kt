@@ -8,9 +8,9 @@ import kotlin.reflect.KMutableProperty0
 interface WithReducer {
     fun <P> reduce(
             property: KMutableProperty0<P>,
+            vararg type: Class<*> = arrayOf(Any::class.java),
             guard: () -> Boolean = { true },
             busName: String = EventBus.DEFAULT,
-            vararg type: Class<*>,
             handler: (P, Any) -> P) {
         type.forEach {
             EventBus.onEvent(it) {
