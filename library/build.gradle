@@ -15,7 +15,7 @@ ext {
     siteUrl = 'https://github.com/charleslzq/kotlin-react'
     gitUrl = 'https://github.com/charleslzq/kotlin-react.git'
 
-    libraryVersion = '1.0.0'
+    libraryVersion = '1.0.1'
 
     developerId = 'charleslzq' // Maven plugin uses this. I don't know if it needs to be anything special.
     developerName = 'Eric Charles'

@@ -2,6 +2,7 @@ package com.github.charleslzq.kotlin.react
 
 import android.view.View
 import com.github.charleslzq.kotlin.react.ObservableStatus.Companion.getDelegate
+import kotlin.reflect.KProperty0
 import kotlin.reflect.KProperty1
 
 /**
@@ -20,6 +21,22 @@ open class Component<out V, S>(
             delegate.onChange {
                 if (guard()) {
                     handler(property.get(store))
+                }
+            }
+        } else {
+            throw IllegalAccessException("Not Observable Property, Can't render")
+        }
+    }
+
+    fun <P> render(property: KProperty0<P>, guard: () -> Boolean = { true }, handler: (P) -> Unit) {
+        val delegate = getDelegate(property)
+        if (delegate != null) {
+            if (guard()) {
+                handler(property.get())
+            }
+            delegate.onChange {
+                if (guard()) {
+                    handler(property.get())
                 }
             }
         } else {
