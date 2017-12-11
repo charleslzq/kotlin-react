@@ -7,16 +7,19 @@ import kotlin.reflect.KMutableProperty0
  */
 interface WithReducer {
     fun <P> reduce(
-            kProperty: KMutableProperty0<P>,
+            property: KMutableProperty0<P>,
             predicate: () -> Boolean = { true },
             busName: String = EventBus.DEFAULT,
-            handler: (P, Event) -> P) {
-        EventBus.onEvent<Event>(busName) {
-            if (predicate()) {
-                val rawValue = kProperty.get()
-                val newValue = handler(rawValue, it)
-                if (rawValue != newValue) {
-                    kProperty.set(newValue)
+            vararg type: Class<*>,
+            handler: (P, Any) -> P) {
+        type.forEach {
+            EventBus.onEvent(it) {
+                if (predicate()) {
+                    val rawValue = property.get()
+                    val newValue = handler(rawValue, it)
+                    if (rawValue != newValue) {
+                        property.set(newValue)
+                    }
                 }
             }
         }

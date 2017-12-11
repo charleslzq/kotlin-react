@@ -14,16 +14,9 @@ class ObservableStatus<T>(
         initialValue: T
 ) : ObservableProperty<T>(initialValue) {
     private val publisher = PublishSubject.create<Pair<T, T>>()
-    private val handlers = mutableListOf<(Pair<T, T>) -> Unit>()
-
-    init {
-        publisher.subscribe { event ->
-            handlers.forEach { it(event) }
-        }
-    }
 
     fun onChange(handler: (Pair<T, T>) -> Unit) {
-        handlers.add(handler)
+        publisher.subscribe { handler(it) }
     }
 
     override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {

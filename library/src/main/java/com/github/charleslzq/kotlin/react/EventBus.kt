@@ -1,6 +1,5 @@
 package com.github.charleslzq.kotlin.react
 
-import android.util.Log
 import io.reactivex.subjects.PublishSubject
 
 /**
@@ -8,33 +7,51 @@ import io.reactivex.subjects.PublishSubject
  */
 object EventBus {
     val DEFAULT = "DEFAULT"
-    val registry = mutableMapOf<String, Array<PublishSubject<Any>>>()
+    val registry = mutableMapOf<EventBusEntryKey<*>, PublishSubject<Any>>()
+    val keyRegistry = mutableMapOf<String, MutableList<EventBusEntryKey<*>>>()
 
-    fun post(event: Any, name: String = DEFAULT) {
-        registry[name]?.forEach { it.onNext(event) }
+    fun clear() {
+        registry.clear()
+        keyRegistry.clear()
     }
 
-    inline fun <reified T> castEvent(event: Any): T? {
-        return when (event is T) {
-            true -> event as T
-            false -> null
+    fun post(event: Any, name: String = DEFAULT) {
+        findPublisher(event, name).forEach {
+            it.apply { onNext(event) }
         }
     }
 
     inline fun <reified T> onEvent(busName: String = DEFAULT, crossinline handler: (T) -> Unit) {
-        val publisher = PublishSubject.create<Any>()
-        publisher.subscribe {
-            castEvent<T>(it)?.apply { handler(this) }
-        }
-        if (!registry.containsKey(busName)) {
-            val logger = PublishSubject.create<Any>()
-            logger.subscribe {
-                Log.d("EventBus $busName", "${it.javaClass.simpleName} received")
+        val key = EventBusEntryKey(busName, T::class.java)
+        if (!registry.containsKey(key)) {
+            registry[key] = PublishSubject.create<Any>()
+            if (!keyRegistry.containsKey(busName)) {
+                keyRegistry[busName] = mutableListOf()
             }
-            registry[busName] = arrayOf(logger)
+            keyRegistry[busName]!!.add(key)
         }
-        registry[busName] = registry[busName]!!.plus(publisher)
+        registry[key]!!.subscribe {
+            handler(key.type.cast(it))
+        }
     }
-}
 
-interface Event
+    fun <T> onEvent(type: Class<T>, busName: String = DEFAULT, handler: (T) -> Unit) {
+        val key = EventBusEntryKey(busName, type)
+        if (!registry.containsKey(key)) {
+            registry[key] = PublishSubject.create<Any>()
+            if (!keyRegistry.containsKey(busName)) {
+                keyRegistry[busName] = mutableListOf()
+            }
+            keyRegistry[busName]!!.add(key)
+        }
+        registry[key]!!.subscribe {
+            handler(key.type.cast(it))
+        }
+    }
+
+    private fun findPublisher(event: Any, name: String = DEFAULT): List<PublishSubject<Any>> {
+        return keyRegistry[name]?.filter { it.type.isInstance(event) }?.mapNotNull { registry[it] } ?: listOf()
+    }
+
+    data class EventBusEntryKey<T>(val name: String, val type: Class<T>)
+}

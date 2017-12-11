@@ -12,7 +12,7 @@ open class Component<out V, S>(
         val view: V,
         val store: S
 ) where V : View {
-    fun <P> refreshByProperty(property: KProperty1<S, P>, predicate: () -> Boolean = { true }, handler: (P) -> Unit) {
+    fun <P> renderBy(property: KProperty1<S, P>, predicate: () -> Boolean = { true }, handler: (P) -> Unit) {
         val delegate = getDelegate(property, store)
         if (delegate != null) {
             if (predicate()) {
@@ -24,11 +24,11 @@ open class Component<out V, S>(
                 }
             }
         } else {
-            throw IllegalAccessException("Not Observable Property, Can't refreshByProperty")
+            throw IllegalAccessException("Not Observable Property, Can't renderBy")
         }
     }
 
-    fun <P> refreshByProperty(property: KProperty0<P>, predicate: () -> Boolean = { true }, handler: (P) -> Unit) {
+    fun <P> renderBy(property: KProperty0<P>, predicate: () -> Boolean = { true }, handler: (P) -> Unit) {
         val delegate = getDelegate(property)
         if (delegate != null) {
             if (predicate()) {
@@ -40,13 +40,13 @@ open class Component<out V, S>(
                 }
             }
         } else {
-            throw IllegalAccessException("Not Observable Property, Can't refreshByProperty")
+            throw IllegalAccessException("Not Observable Property, Can't renderBy")
         }
     }
 
-    fun refreshByProperties(vararg property: KProperty0<*>, predicate: () -> Boolean = { true }, handler: () -> Unit) {
+    fun renderByMulti(vararg property: KProperty0<*>, predicate: () -> Boolean = { true }, handler: () -> Unit) {
         property.forEach {
-            refreshByProperty(it, predicate, { handler() })
+            renderBy(it, predicate, { handler() })
         }
     }
 }
