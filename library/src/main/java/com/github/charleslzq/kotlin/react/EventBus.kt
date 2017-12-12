@@ -31,7 +31,9 @@ object EventBus {
             keyRegistry[busName]!!.add(key)
         }
         registry[key]!!.subscribe {
-            handler(key.type.cast(it))
+            when(it) {
+                is T -> handler(it)
+            }
         }
     }
 
