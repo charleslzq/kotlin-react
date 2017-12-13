@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'maven'
+apply plugin: 'signing'
 
 ext {
     bintrayRepo = 'maven'  // this is the same as whatever you called your repository in Bintray
@@ -14,6 +16,7 @@ ext {
 
     siteUrl = 'https://github.com/charleslzq/kotlin-react'
     gitUrl = 'https://github.com/charleslzq/kotlin-react.git'
+    gitScm = 'git@github.com:scharleslzq/kotlin-react.git'
 
     libraryVersion = '1.0.1'
 
@@ -46,6 +49,9 @@ android {
         }
     }
 
+    sourceSets{
+        main.kotlin.srcDirs += 'src/main/kotlin'
+    }
 }
 
 dependencies {
@@ -54,10 +60,10 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    compile 'io.reactivex.rxjava2:rxjava:2.1.7'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.7'
 }
 repositories {
     mavenCentral()
@@ -126,10 +132,10 @@ if (project.hasProperty("android")) { // Android libraries
         from android.sourceSets.main.java.srcDirs
     }
 
-//    task javadoc(type: Javadoc) {
-//        source = android.sourceSets.main.java.srcDirs
-//        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-//    }
+    task javadoc(type: Javadoc) {
+        source = android.sourceSets.main.java.srcDirs
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    }
 } else { // Java libraries
     task sourcesJar(type: Jar, dependsOn: classes) {
         classifier = 'sources'
@@ -137,40 +143,62 @@ if (project.hasProperty("android")) { // Android libraries
     }
 }
 
-//task javadocJar(type: Jar, dependsOn: javadoc) {
-//    classifier = 'javadoc'
-//    from javadoc.destinationDir
-//}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
 
 artifacts {
-//    archives javadocJar
+    archives javadocJar
     archives sourcesJar
 }
 
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
+signing {
+    sign configurations.archives
+}
 
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-    configurations = ['archives']
-    pkg {
-        repo = bintrayRepo
-        name = bintrayName
-        desc = libraryDescription
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        userOrg = bintrayOrg
-        licenses = allLicenses
-        publish = true
-        publicDownloadNumbers = true
-        version {
-            desc = libraryDescription
-            gpg {
-                // optional GPG encryption. Default is false.
-                sign = false
-                //passphrase = properties.getProperty("bintray.gpg.password")
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                groupId publishedGroupId
+                artifactId artifact
+                name libraryName
+                packaging 'jar'
+                // optionally artifactId can be defined here
+                description libraryDescription
+                url siteUrl
+
+                scm {
+                    connection 'scm:svn:' + gitScm
+                    developerConnection 'scm:svn:' + gitScm
+                    url gitScm
+                }
+
+                licenses {
+                    license {
+                        name licenseName
+                        url licenseUrl
+                    }
+                }
+
+                developers {
+                    developer {
+                        id developerId
+                        name developerName
+                        email developerEmail
+                    }
+                }
             }
         }
     }
