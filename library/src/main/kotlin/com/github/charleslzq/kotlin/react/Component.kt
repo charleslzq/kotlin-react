@@ -2,6 +2,9 @@ package com.github.charleslzq.kotlin.react
 
 import android.view.View
 import com.github.charleslzq.kotlin.react.ObservableStatus.Companion.getDelegate
+import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlin.reflect.KProperty0
 import kotlin.reflect.KProperty1
 
@@ -12,13 +15,18 @@ open class Component<out V, S>(
         val view: V,
         val store: S
 ) where V : View {
-    fun <P> render(property: KProperty1<S, P>, guard: () -> Boolean = { true }, handler: (P) -> Unit) {
+    fun <P> render(
+            property: KProperty1<S, P>,
+            subscribeOn: Scheduler = Schedulers.io(),
+            observeOn: Scheduler = AndroidSchedulers.mainThread(),
+            guard: () -> Boolean = { true },
+            handler: (P) -> Unit) {
         val delegate = getDelegate(property, store)
         if (delegate != null) {
             if (guard()) {
                 handler(property.get(store))
             }
-            delegate.onChange {
+            delegate.onChange(subscribeOn, observeOn) {
                 if (guard()) {
                     handler(property.get(store))
                 }
@@ -28,13 +36,18 @@ open class Component<out V, S>(
         }
     }
 
-    fun <P> render(property: KProperty0<P>, guard: () -> Boolean = { true }, handler: (P) -> Unit) {
+    fun <P> render(
+            property: KProperty0<P>,
+            subscribeOn: Scheduler = Schedulers.io(),
+            observeOn: Scheduler = AndroidSchedulers.mainThread(),
+            guard: () -> Boolean = { true },
+            handler: (P) -> Unit) {
         val delegate = getDelegate(property)
         if (delegate != null) {
             if (guard()) {
                 handler(property.get())
             }
-            delegate.onChange {
+            delegate.onChange(subscribeOn, observeOn) {
                 if (guard()) {
                     handler(property.get())
                 }

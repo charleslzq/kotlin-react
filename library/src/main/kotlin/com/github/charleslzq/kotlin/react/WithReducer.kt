@@ -1,5 +1,7 @@
 package com.github.charleslzq.kotlin.react
 
+import io.reactivex.Scheduler
+import io.reactivex.schedulers.Schedulers
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KMutableProperty1
 
@@ -12,9 +14,11 @@ interface WithReducer<S> where S: WithReducer<S> {
             vararg type: Class<*> = arrayOf(Any::class.java),
             guard: () -> Boolean = { true },
             busName: String = EventBus.DEFAULT,
+            subscribeOn: Scheduler = Schedulers.io(),
+            observeOn: Scheduler = Schedulers.io(),
             handler: (P, Any) -> P) {
         type.forEach {
-            EventBus.onEvent(it) {
+            EventBus.onEvent(it, busName, subscribeOn, observeOn) {
                 if (guard()) {
                     @Suppress("UNCHECKED_CAST")
                     val rawValue = property.get(this as S)

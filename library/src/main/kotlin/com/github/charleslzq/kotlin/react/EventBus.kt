@@ -1,5 +1,7 @@
 package com.github.charleslzq.kotlin.react
 
+import io.reactivex.Scheduler
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 
 /**
@@ -21,7 +23,11 @@ object EventBus {
         }
     }
 
-    inline fun <reified T> onEvent(busName: String = DEFAULT, crossinline handler: (T) -> Unit) {
+    inline fun <reified T> onEvent(
+            busName: String = DEFAULT,
+            subscribeOn: Scheduler = Schedulers.io(),
+            observeOn: Scheduler = Schedulers.io(),
+            crossinline handler: (T) -> Unit) {
         val key = EventBusEntryKey(busName, T::class.java)
         if (!registry.containsKey(key)) {
             registry[key] = PublishSubject.create<Any>()
@@ -30,14 +36,17 @@ object EventBus {
             }
             keyRegistry[busName]!!.add(key)
         }
-        registry[key]!!.subscribe {
-            when(it) {
-                is T -> handler(it)
-            }
+        registry[key]!!.subscribeOn(subscribeOn).observeOn(observeOn).subscribe {
+            handler(T::class.java.cast(it))
         }
     }
 
-    fun <T> onEvent(type: Class<T>, busName: String = DEFAULT, handler: (T) -> Unit) {
+    fun <T> onEvent(
+            type: Class<T>,
+            busName: String = DEFAULT,
+            subscribeOn: Scheduler = Schedulers.io(),
+            observeOn: Scheduler = Schedulers.io(),
+            handler: (T) -> Unit) {
         val key = EventBusEntryKey(busName, type)
         if (!registry.containsKey(key)) {
             registry[key] = PublishSubject.create<Any>()
@@ -46,7 +55,7 @@ object EventBus {
             }
             keyRegistry[busName]!!.add(key)
         }
-        registry[key]!!.subscribe {
+        registry[key]!!.subscribeOn(subscribeOn).observeOn(observeOn).subscribe {
             handler(key.type.cast(it))
         }
     }

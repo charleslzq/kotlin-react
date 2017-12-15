@@ -1,5 +1,7 @@
 package com.github.charleslzq.kotlin.react
 
+import io.reactivex.Scheduler
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
@@ -15,8 +17,8 @@ class ObservableStatus<T>(
 ) : ObservableProperty<T>(initialValue) {
     private val publisher = PublishSubject.create<Pair<T, T>>()
 
-    fun onChange(handler: (Pair<T, T>) -> Unit) {
-        publisher.subscribe { handler(it) }
+    fun onChange(subscribeOn: Scheduler = Schedulers.io(), observeOn: Scheduler = Schedulers.io(), handler: (Pair<T, T>) -> Unit) {
+        publisher.subscribeOn(subscribeOn).observeOn(observeOn).subscribe { handler(it) }
     }
 
     override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
