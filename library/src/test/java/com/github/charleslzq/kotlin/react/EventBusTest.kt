@@ -1,5 +1,6 @@
 package com.github.charleslzq.kotlin.react
 
+import io.reactivex.schedulers.Schedulers
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertThat
 import org.junit.Before
@@ -13,7 +14,7 @@ class EventBusTest {
 
     @Before
     fun clearEventBus() {
-        EventBus.clear()
+        EventBus.registry.clear()
     }
 
     @Test
@@ -32,12 +33,12 @@ class EventBusTest {
         val data = 4
         var count = 0
 
-        EventBus.onEvent<Int> {
+        EventBus.onEvent<Int>(subscribeOn = null, observeOn = null) {
             count++
             assertThat("subcriber1: data received correctly", it, `is`(data))
         }
 
-        EventBus.onEvent<Int> {
+        EventBus.onEvent<Int>(subscribeOn = null, observeOn = null) {
             count++
             assertThat("subcriber1: data received correctly", it, `is`(data))
         }
@@ -54,16 +55,16 @@ class EventBusTest {
         var doubleCounter = 0
         var numberCounter = 0
 
-        EventBus.onEvent<Int> { intCounter++ }
-        EventBus.onEvent<Float> { floatCounter++ }
-        EventBus.onEvent<Double> { doubleCounter++ }
-        EventBus.onEvent<Number> { numberCounter++ }
+        EventBus.onEvent<Int>(subscribeOn = null, observeOn = null) { intCounter++ }
+        EventBus.onEvent<Float>(subscribeOn = null, observeOn = null) { floatCounter++ }
+        EventBus.onEvent<Double>(subscribeOn = null, observeOn = null) { doubleCounter++ }
+        EventBus.onEvent<Number>(subscribeOn = null, observeOn = null) { numberCounter++ }
 
         data.forEach { EventBus.post(it) }
 
         assertThat("int count should match", intCounter, `is`(data.filter { it is Int }.count()))
         assertThat("float count should match", floatCounter, `is`(data.filter { it is Float }.count()))
         assertThat("double count should match", doubleCounter, `is`(data.filter { it is Double }.count()))
-        assertThat("number count should match", numberCounter, `is`(data.filter { it is Number }.count()))
+        assertThat("number count should match", numberCounter, `is`(0))
     }
 }

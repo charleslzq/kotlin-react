@@ -17,7 +17,7 @@ open class Component<out V, S>(
 ) where V : View {
     fun <P> render(
             property: KProperty1<S, P>,
-            subscribeOn: Scheduler = Schedulers.io(),
+            subscribeOn: Scheduler = Schedulers.computation(),
             observeOn: Scheduler = AndroidSchedulers.mainThread(),
             guard: () -> Boolean = { true },
             handler: (P) -> Unit) {
@@ -38,7 +38,7 @@ open class Component<out V, S>(
 
     fun <P> render(
             property: KProperty0<P>,
-            subscribeOn: Scheduler = Schedulers.io(),
+            subscribeOn: Scheduler = Schedulers.computation(),
             observeOn: Scheduler = AndroidSchedulers.mainThread(),
             guard: () -> Boolean = { true },
             handler: (P) -> Unit) {
