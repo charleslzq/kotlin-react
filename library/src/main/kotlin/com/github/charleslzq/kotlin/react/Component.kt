@@ -56,4 +56,32 @@ open class Component<out V, S>(
             throw IllegalAccessException("Not Observable Property, Can't render")
         }
     }
+
+    fun renderByAll(
+            vararg properties: KProperty1<S, *>,
+            subscribeOn: Scheduler = Schedulers.computation(),
+            observeOn: Scheduler = AndroidSchedulers.mainThread(),
+            guard: () -> Boolean = { true },
+            handler: () -> Unit
+    ) {
+        properties.forEach {
+            render(it, subscribeOn, observeOn, guard) {
+                handler()
+            }
+        }
+    }
+
+    fun renderByAll(
+            vararg properties: KProperty0<*>,
+            subscribeOn: Scheduler = Schedulers.computation(),
+            observeOn: Scheduler = AndroidSchedulers.mainThread(),
+            guard: () -> Boolean = { true },
+            handler: () -> Unit
+    ) {
+        properties.forEach {
+            render(it, subscribeOn, observeOn, guard) {
+                handler()
+            }
+        }
+    }
 }
