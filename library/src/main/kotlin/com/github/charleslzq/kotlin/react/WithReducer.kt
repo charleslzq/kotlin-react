@@ -11,28 +11,29 @@ interface WithReducer<S> where S : WithReducer<S> {
     @Suppress("UNCHECKED_CAST")
     fun <P> reduce(
             property: KMutableProperty1<S, P>,
-            busName: String = EventBus.DEFAULT,
-            subscribeOn: Scheduler = Schedulers.io(),
-            observeOn: Scheduler = Schedulers.io(),
-            reducer: Reducer<S, P>.() -> Unit) = with(Reducer(this as S, property, busName, subscribeOn, observeOn), reducer)
+            reducer: Reducer<S, P>.() -> Unit) = with(Reducer(this as S, property), reducer)
 
     class Reducer<S, P>(
             val store: S,
-            val property: KMutableProperty1<S, P>,
-            val busName: String = EventBus.DEFAULT,
-            val subscribeOn: Scheduler = Schedulers.io(),
-            val observeOn: Scheduler = Schedulers.io()
+            val property: KMutableProperty1<S, P>
     ) {
-        inline fun <reified E> on(crossinline precondition: (E) -> Boolean = { true }, crossinline handler: (P, E) -> P) {
+        inline fun <reified E> on(
+                busName: String = EventBus.DEFAULT,
+                subscribeOn: Scheduler = Schedulers.io(),
+                observeOn: Scheduler = Schedulers.io(),
+                crossinline precondition: (E) -> Boolean = { true },
+                crossinline handler: Input<P, E>.() -> P) {
             EventBus.onEvent<E>(busName, subscribeOn, observeOn) {
                 if (precondition(it)) {
                     val rawValue = property.get(store)
-                    val newValue = handler(rawValue, it)
+                    val newValue = handler(Input(rawValue, it))
                     if (rawValue != newValue) {
                         property.set(store, newValue)
                     }
                 }
             }
         }
+
+        data class Input<out P, out E>(val state: P, val event: E)
     }
 }

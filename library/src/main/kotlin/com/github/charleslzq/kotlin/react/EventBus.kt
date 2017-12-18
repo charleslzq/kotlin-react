@@ -9,29 +9,28 @@ import io.reactivex.subjects.PublishSubject
  */
 object EventBus {
     val DEFAULT = "DEFAULT"
-    val registry = mutableMapOf<EventBusEntryKey<*>, PublishSubject<Any>>()
+    val registry = mutableMapOf<String, PublishSubject<Any>>()
 
     fun post(event: Any, busName: String = DEFAULT) {
-        registry[EventBusEntryKey(busName, event::class.java)]!!.apply { onNext(event) }
+        registry[busName]?.apply { onNext(event) }
     }
 
     inline fun <reified T> onEvent(
             busName: String = DEFAULT,
-            subscribeOn: Scheduler? = Schedulers.single(),
+            subscribeOn: Scheduler? = Schedulers.computation(),
             observeOn: Scheduler? = Schedulers.computation(),
             crossinline handler: (T) -> Unit) {
-        val key = EventBusEntryKey(busName, T::class.java)
-        if (!registry.containsKey(key)) {
-            registry[key] = PublishSubject.create<Any>()
+        if (!registry.containsKey(busName)) {
+            registry[busName] = PublishSubject.create<Any>()
         }
-        registry[key]!!.apply {
+        registry[busName]!!.apply {
             subscribeOn?.let { subscribeOn(it) }
         }.apply {
             observeOn?.let { observeOn(it) }
         }.subscribe {
-            handler(T::class.java.cast(it))
+            if (it is T) {
+                handler(it)
+            }
         }
     }
-
-    data class EventBusEntryKey<T>(val name: String, val type: Class<T>)
 }

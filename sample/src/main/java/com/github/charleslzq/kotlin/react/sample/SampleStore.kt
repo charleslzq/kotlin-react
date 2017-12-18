@@ -11,11 +11,8 @@ class SampleStore : WithReducer<SampleStore> {
         private set
 
     init {
-        reduce(SampleStore::count, ClickEvent::class.java) { state, event ->
-            when (event) {
-                is ClickEvent -> state + 1
-                else -> state
-            }
+        reduce(SampleStore::count) {
+            on<ClickEvent> { state + 1 }
         }
     }
 }
