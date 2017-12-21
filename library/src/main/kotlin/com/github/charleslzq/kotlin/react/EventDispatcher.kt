@@ -11,12 +11,11 @@ object EventDispatcher {
             0 -> dispatch
             1 -> middleWare[0](store, dispatch, dispatch)
             else -> {
-                val chain = middleWare.map {
+                middleWare.map {
                     { next: (Any) -> Unit ->
                         it(store, dispatch, next)
                     }
-                }
-                chain.reduceRight { function, composed ->
+                }.reduceRight { function, composed ->
                     { next: (Any) -> Unit ->
                         function(composed(next))
                     }
