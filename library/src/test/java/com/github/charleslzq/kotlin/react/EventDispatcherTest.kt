@@ -36,7 +36,7 @@ class EventDispatcherTest {
             }
         }
 
-        val dispatch = EventDispatcher.buildDispatcher("", middleWare1, middleWare2)
+        val dispatch = EventDispatcher.buildDispatcher(middleWare1, middleWare2)
 
         dispatch(2)
 

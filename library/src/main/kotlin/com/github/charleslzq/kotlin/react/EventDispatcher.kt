@@ -5,7 +5,7 @@ package com.github.charleslzq.kotlin.react
  */
 object EventDispatcher {
 
-    fun buildDispatcher(store: Any = Unit, vararg middleWare: (Any, (Any) -> Unit, (Any) -> Unit) -> ((Any) -> Unit), busName: String = EventBus.DEFAULT): (Any) -> Unit {
+    fun buildDispatcher(vararg middleWare: (Any, (Any) -> Unit, (Any) -> Unit) -> ((Any) -> Unit), busName: String = EventBus.DEFAULT, store: Any = Unit): (Any) -> Unit {
         val dispatch: (Any) -> Unit = { EventBus.post(it, busName) }
         return when (middleWare.size) {
             0 -> dispatch
