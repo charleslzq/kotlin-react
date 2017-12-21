@@ -17,8 +17,12 @@ class ObservableStatus<T>(
 ) : ObservableProperty<T>(initialValue) {
     private val publisher = PublishSubject.create<Pair<T, T>>()
 
-    fun onChange(subscribeOn: Scheduler = Schedulers.io(), observeOn: Scheduler = Schedulers.io(), handler: (Pair<T, T>) -> Unit) {
-        publisher.subscribeOn(subscribeOn).observeOn(observeOn).subscribe { handler(it) }
+    fun onChange(subscribeOn: Scheduler? = null, observeOn: Scheduler? = null, handler: (Pair<T, T>) -> Unit) {
+        publisher.apply {
+            subscribeOn?.let { subscribeOn(it) }
+        }.apply {
+            observeOn?.let { observeOn(it) }
+        }.subscribe { handler(it) }
     }
 
     override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {

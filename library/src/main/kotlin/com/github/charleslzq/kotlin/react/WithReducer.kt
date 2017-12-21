@@ -19,8 +19,8 @@ interface WithReducer<S> where S : WithReducer<S> {
     ) {
         inline fun <reified E> on(
                 busName: String = EventBus.DEFAULT,
-                subscribeOn: Scheduler = Schedulers.io(),
-                observeOn: Scheduler = Schedulers.io(),
+                subscribeOn: Scheduler = Schedulers.computation(),
+                observeOn: Scheduler = Schedulers.computation(),
                 crossinline precondition: (E) -> Boolean = { true },
                 crossinline handler: Input<P, E>.() -> P) {
             EventBus.onEvent<E>(busName, subscribeOn, observeOn) {
