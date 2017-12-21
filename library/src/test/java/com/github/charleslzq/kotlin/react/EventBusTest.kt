@@ -1,6 +1,5 @@
 package com.github.charleslzq.kotlin.react
 
-import io.reactivex.schedulers.Schedulers
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertThat
 import org.junit.Before
