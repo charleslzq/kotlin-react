@@ -64,6 +64,6 @@ class EventBusTest {
         assertThat("int count should match", intCounter, `is`(data.filter { it is Int }.count()))
         assertThat("float count should match", floatCounter, `is`(data.filter { it is Float }.count()))
         assertThat("double count should match", doubleCounter, `is`(data.filter { it is Double }.count()))
-        assertThat("number count should match", numberCounter, `is`(0))
+        assertThat("number count should match", numberCounter, `is`(data.filter { it is Number }.count()))
     }
 }
