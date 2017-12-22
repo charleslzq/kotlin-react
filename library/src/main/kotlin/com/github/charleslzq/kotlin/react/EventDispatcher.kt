@@ -5,7 +5,7 @@ package com.github.charleslzq.kotlin.react
  */
 object EventDispatcher {
 
-    fun buildDispatcher(vararg middleWare: (Any, (Any) -> Unit, (Any) -> Unit) -> ((Any) -> Unit), busName: String = EventBus.DEFAULT, store: Any = Unit): (Any) -> Unit {
+    fun buildDispatcher(vararg middleWare: (Any?, (Any) -> Unit, (Any) -> Unit) -> ((Any) -> Unit), store: Any? = null, busName: String = EventBus.DEFAULT): (Any) -> Unit {
         val dispatch: (Any) -> Unit = { EventBus.post(it, busName) }
         return when (middleWare.size) {
             0 -> dispatch
@@ -28,5 +28,5 @@ object EventDispatcher {
         with(MWApi(store, dispatch, next), handler)
     }
 
-    class MWApi(val store: Any, val dispatch: (Any) -> Unit, val next: (Any) -> Unit)
+    class MWApi(val store: Any?, val dispatch: (Any) -> Unit, val next: (Any) -> Unit)
 }
