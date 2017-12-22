@@ -10,21 +10,19 @@ object EventDispatcher {
         return when (middleWare.size) {
             0 -> dispatch
             1 -> middleWare[0](store, dispatch, dispatch)
-            else -> {
-                middleWare.map {
-                    { next: (Any) -> Unit ->
-                        it(store, dispatch, next)
-                    }
-                }.reduceRight { function, composed ->
-                    { next: (Any) -> Unit ->
-                        function(composed(next))
-                    }
-                }(dispatch)
-            }
+            else -> middleWare.map {
+                        { next: (Any) -> Unit ->
+                                it(store, dispatch, next)
+                        }
+                    }.reduceRight { function, composed ->
+                        { next: (Any) -> Unit ->
+                            function(composed(next))
+                        }
+                    }(dispatch)
         }
     }
 
-    fun buildMiddleWare(handler: MWApi.() -> ((Any) -> Unit)): (Any, (Any) -> Unit, (Any) -> Unit) -> ((Any) -> Unit) = { store, dispatch, next ->
+    fun buildMiddleWare(handler: MWApi.() -> ((Any) -> Unit)): (Any?, (Any) -> Unit, (Any) -> Unit) -> ((Any) -> Unit) = { store, dispatch, next ->
         with(MWApi(store, dispatch, next), handler)
     }
 
