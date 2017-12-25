@@ -17,23 +17,19 @@ class EventDispatcherTest {
         EventBus.onEvent<Int> { reached[it] = System.currentTimeMillis() }
 
         val middleWare1 = EventDispatcher.buildMiddleWare {
-            { event ->
-                dispatch(0)
-                Thread.sleep(10)
-                next(event)
-                Thread.sleep(10)
-                dispatch(4)
-            }
+            dispatch(0)
+            Thread.sleep(10)
+            next(event)
+            Thread.sleep(10)
+            dispatch(4)
         }
 
         val middleWare2 = EventDispatcher.buildMiddleWare {
-            { event ->
-                dispatch(1)
-                Thread.sleep(10)
-                next(event)
-                Thread.sleep(10)
-                dispatch(3)
-            }
+            dispatch(1)
+            Thread.sleep(10)
+            next(event)
+            Thread.sleep(10)
+            dispatch(3)
         }
 
         val dispatch = EventDispatcher.buildDispatcher(middleWare1, middleWare2)

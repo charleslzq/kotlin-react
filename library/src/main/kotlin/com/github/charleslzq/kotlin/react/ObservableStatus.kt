@@ -1,7 +1,6 @@
 package com.github.charleslzq.kotlin.react
 
 import io.reactivex.Scheduler
-import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
