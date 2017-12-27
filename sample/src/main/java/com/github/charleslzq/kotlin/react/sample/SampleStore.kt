@@ -2,7 +2,6 @@ package com.github.charleslzq.kotlin.react.sample
 
 import com.github.charleslzq.kotlin.react.ObservableStatus
 import com.github.charleslzq.kotlin.react.Store
-import com.github.charleslzq.kotlin.react.WithReducer
 
 /**
  * Created by charleslzq on 17-12-11.
