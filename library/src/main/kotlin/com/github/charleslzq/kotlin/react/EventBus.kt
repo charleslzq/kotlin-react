@@ -17,15 +17,17 @@ object EventBus {
 
     inline fun <reified T> onEvent(
             busName: String = DEFAULT,
-            subscribeOn: Scheduler = Schedulers.computation(),
-            observeOn: Scheduler = Schedulers.computation(),
+            subscribeOn: Scheduler? = Schedulers.computation(),
+            observeOn: Scheduler? = Schedulers.computation(),
             crossinline handler: (T) -> Unit) {
         if (!registry.containsKey(busName)) {
             registry[busName] = PublishSubject.create<Any>()
         }
-        registry[busName]!!
-                .subscribeOn(subscribeOn)
-                .observeOn(observeOn).subscribe {
+        registry[busName]!!.apply {
+            subscribeOn?.let { subscribeOn(it) }
+        }.apply {
+            observeOn?.let { observeOn(it) }
+        }.subscribe {
             if (it is T) {
                 handler(it)
             }

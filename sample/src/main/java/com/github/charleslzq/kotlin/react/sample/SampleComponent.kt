@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.TextView
 import com.github.charleslzq.kotlin.react.Component
 import com.github.charleslzq.kotlin.react.EventBus
+import com.github.charleslzq.kotlin.react.Store
 
 /**
  * Created by charleslzq on 17-12-11.
@@ -18,7 +19,8 @@ class SampleComponent(
 
     init {
         button.setOnClickListener {
-            EventBus.post(ClickEvent())
+            store.dispatch(ClickEvent())
+            Store.dispatch(ClickEvent())
         }
 
         render(SampleStore::count) {
