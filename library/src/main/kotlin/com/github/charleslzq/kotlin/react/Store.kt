@@ -16,6 +16,8 @@ inline fun <reified T> castOrNull(target: Any): T? {
     }
 }
 
+typealias DispatchAction<S> = (S, (Any) -> Unit, Array<out Any>) -> Unit
+
 abstract class Store<S>(vararg middleWare: (Any, (Any) -> Unit, (Any) -> Unit, Any) -> Unit) where S : Store<S> {
     @PublishedApi
     internal val subject = PublishSubject.create<Any>()
@@ -78,8 +80,13 @@ abstract class Store<S>(vararg middleWare: (Any, (Any) -> Unit, (Any) -> Unit, A
 
     companion object {
         private val dispatchers = mutableListOf<(Any) -> Unit>()
-        val thunk = buildMiddleWare {
-            castOrNull<((Any) -> Unit) -> Unit>(event)?.invoke(dispatch) ?: next(event)
+
+        inline fun <reified S> buildThunk(vararg args: Any) = buildMiddleWare {
+            if (store is S) {
+                castOrNull<DispatchAction<S>>(event)?.invoke(store, dispatch, args) ?: next(event)
+            } else {
+                next(event)
+            }
         }
 
         fun broadcast(event: Any) {

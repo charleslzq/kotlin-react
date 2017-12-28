@@ -19,13 +19,13 @@ class StoreTest {
         Assert.assertThat("all event reached", testStore.reached, arrayContaining(true, true))
     }
 
-    private fun testThunk(): ((Any) -> Unit) -> Unit {
-        return { dispatch ->
+    private fun testThunk(): DispatchAction<TestStore> {
+        return { _, dispatch, _ ->
             dispatch(1)
         }
     }
 
-    class TestStore : Store<TestStore>(thunk, buildMiddleWare {
+    class TestStore : Store<TestStore>(buildThunk<TestStore>(), buildMiddleWare {
         event.let {
             println("log $it")
             next(it)
