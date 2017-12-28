@@ -1,5 +1,6 @@
 package com.github.charleslzq.kotlin.react
 
+import io.reactivex.schedulers.Schedulers
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertThat
 import org.junit.Before
@@ -32,12 +33,12 @@ class EventBusTest {
         val data = 4
         var count = 0
 
-        EventBus.onEvent<Int>(subscribeOn = null, observeOn = null) {
+        EventBus.onEvent<Int>(scheduler = Schedulers.trampoline()) {
             count++
             assertThat("subcriber1: data received correctly", it, `is`(data))
         }
 
-        EventBus.onEvent<Int>(subscribeOn = null, observeOn = null) {
+        EventBus.onEvent<Int>(scheduler = Schedulers.trampoline()) {
             count++
             assertThat("subcriber1: data received correctly", it, `is`(data))
         }
@@ -54,10 +55,10 @@ class EventBusTest {
         var doubleCounter = 0
         var numberCounter = 0
 
-        EventBus.onEvent<Int>(subscribeOn = null, observeOn = null) { intCounter++ }
-        EventBus.onEvent<Float>(subscribeOn = null, observeOn = null) { floatCounter++ }
-        EventBus.onEvent<Double>(subscribeOn = null, observeOn = null) { doubleCounter++ }
-        EventBus.onEvent<Number>(subscribeOn = null, observeOn = null) { numberCounter++ }
+        EventBus.onEvent<Int>(scheduler = Schedulers.trampoline()) { intCounter++ }
+        EventBus.onEvent<Float>(scheduler = Schedulers.trampoline()) { floatCounter++ }
+        EventBus.onEvent<Double>(scheduler = Schedulers.trampoline()) { doubleCounter++ }
+        EventBus.onEvent<Number>(scheduler = Schedulers.trampoline()) { numberCounter++ }
 
         data.forEach { EventBus.post(it) }
 

@@ -25,11 +25,16 @@ open class ComponentGroup<out V, S>(
         children.addAll(render())
     }
 
-    class Sub<in V, S, T, out SV, SS>(
+    open class Sub<in V, in S, T, out SV, SS>(
             val target: KClass<T>,
             val findViews: (V) -> List<SV>,
             val mapStates: (S, Int) -> SS
     ) where V : View, SV : View, T : Component<SV, SS>
+
+    class Delegate<V, S, T>(
+            target: KClass<T>
+    ) : Sub<V, S, T, V, S>(target, { listOf(it) }, sameAsParent())
+            where V : View, T : Component<V, S>
 
     companion object {
         fun <V, SV> byId(id: Int): (V) -> List<SV> where V : View, SV : View {

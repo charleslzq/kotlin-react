@@ -4,7 +4,6 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import com.github.charleslzq.kotlin.react.Component
-import com.github.charleslzq.kotlin.react.EventBus
 import com.github.charleslzq.kotlin.react.Store
 
 /**
@@ -20,7 +19,7 @@ class SampleComponent(
     init {
         button.setOnClickListener {
             store.dispatch(ClickEvent())
-            Store.dispatch(ClickEvent())
+            Store.broadcast(ClickEvent())
         }
 
         render(SampleStore::count) {

@@ -1,6 +1,7 @@
 package com.github.charleslzq.kotlin.react
 
 import com.github.charleslzq.kotlin.react.ObservableStatus.Companion.getDelegate
+import io.reactivex.schedulers.Schedulers
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertThat
 import org.junit.Before
@@ -23,7 +24,7 @@ class ObservableStatusTest {
         val newData = 4
         var oldValue = -1
         var newValue = -1
-        getDelegate(this::data)!!.onChange {
+        getDelegate(this::data)!!.onChange(Schedulers.trampoline()) {
             oldValue = it.first
             newValue = it.second
         }
@@ -36,10 +37,10 @@ class ObservableStatusTest {
     @Test
     fun testMultiSubscriber() {
         var count = 0
-        getDelegate(this::data)!!.onChange {
+        getDelegate(this::data)!!.onChange(Schedulers.trampoline()) {
             count++
         }
-        getDelegate(this::data)!!.onChange {
+        getDelegate(this::data)!!.onChange(Schedulers.trampoline()) {
             count++
         }
 

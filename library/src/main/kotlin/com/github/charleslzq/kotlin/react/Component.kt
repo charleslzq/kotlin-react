@@ -4,7 +4,6 @@ import android.view.View
 import com.github.charleslzq.kotlin.react.ObservableStatus.Companion.getDelegate
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kotlin.reflect.KProperty0
 import kotlin.reflect.KProperty1
 
@@ -17,8 +16,7 @@ open class Component<out V, S>(
 ) where V : View {
     fun <P> render(
             property: KProperty1<S, P>,
-            subscribeOn: Scheduler = Schedulers.computation(),
-            observeOn: Scheduler = AndroidSchedulers.mainThread(),
+            scheduler: Scheduler = AndroidSchedulers.mainThread(),
             guard: () -> Boolean = { true },
             handler: (P) -> Unit) {
         val delegate = getDelegate(property, store)
@@ -26,7 +24,7 @@ open class Component<out V, S>(
             if (guard()) {
                 handler(property.get(store))
             }
-            delegate.onChange(subscribeOn, observeOn) {
+            delegate.onChange(scheduler) {
                 if (guard()) {
                     handler(property.get(store))
                 }
@@ -38,8 +36,7 @@ open class Component<out V, S>(
 
     fun <P> render(
             property: KProperty0<P>,
-            subscribeOn: Scheduler = Schedulers.computation(),
-            observeOn: Scheduler = AndroidSchedulers.mainThread(),
+            scheduler: Scheduler = AndroidSchedulers.mainThread(),
             guard: () -> Boolean = { true },
             handler: (P) -> Unit) {
         val delegate = getDelegate(property)
@@ -47,7 +44,7 @@ open class Component<out V, S>(
             if (guard()) {
                 handler(property.get())
             }
-            delegate.onChange(subscribeOn, observeOn) {
+            delegate.onChange(scheduler) {
                 if (guard()) {
                     handler(property.get())
                 }
@@ -59,13 +56,12 @@ open class Component<out V, S>(
 
     fun renderByAll(
             vararg properties: KProperty1<S, *>,
-            subscribeOn: Scheduler = Schedulers.computation(),
-            observeOn: Scheduler = AndroidSchedulers.mainThread(),
+            scheduler: Scheduler = AndroidSchedulers.mainThread(),
             guard: () -> Boolean = { true },
             handler: () -> Unit
     ) {
         properties.forEach {
-            render(it, subscribeOn, observeOn, guard) {
+            render(it, scheduler, guard) {
                 handler()
             }
         }
@@ -73,13 +69,12 @@ open class Component<out V, S>(
 
     fun renderByAll(
             vararg properties: KProperty0<*>,
-            subscribeOn: Scheduler = Schedulers.computation(),
-            observeOn: Scheduler = AndroidSchedulers.mainThread(),
+            scheduler: Scheduler = AndroidSchedulers.mainThread(),
             guard: () -> Boolean = { true },
             handler: () -> Unit
     ) {
         properties.forEach {
-            render(it, subscribeOn, observeOn, guard) {
+            render(it, scheduler, guard) {
                 handler()
             }
         }
