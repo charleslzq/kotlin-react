@@ -10,10 +10,21 @@ import kotlin.reflect.KProperty1
 /**
  * Created by charleslzq on 17-11-27.
  */
-open class Component<out V, S>(
+open class Component<V, S>(
         val view: V,
         val store: S
 ) where V : View {
+    @PublishedApi
+    internal val children = Children(Component(view, store))
+
+    fun build(builder: Children<V, S>.() -> Children<V, S>) = with(children, builder).bind()
+
+    fun rebind() = children.bind()
+
+    inline fun <reified T, SV, SS> getChildren(): List<T> where T : Component<SV, SS> {
+        return children.list.filter { it is T }.map { it as T }
+    }
+
     fun <P> render(
             property: KProperty1<S, P>,
             scheduler: Scheduler = AndroidSchedulers.mainThread(),
@@ -78,5 +89,26 @@ open class Component<out V, S>(
                 handler()
             }
         }
+    }
+
+    class Children<V, S>(private val parent: Component<V, S>) where V : View {
+        @PublishedApi
+        internal val list = mutableListOf<Component<*, *>>()
+        private val binders = mutableListOf<() -> List<Component<*, *>>>()
+
+        fun <T, SV, SS> child(generator: Component<V, S>.() -> T) where SV : View, T : Component<SV, SS> {
+            binders.add { listOf(with(parent, generator)) }
+        }
+
+        fun <T, SV, SS> children(findViews: (V) -> List<SV>, generator: IndexedContext<SV, S>.() -> T) where SV : View, T : Component<SV, SS> {
+            binders.add { findViews(parent.view).mapIndexed { index, sv -> with(IndexedContext(sv, parent.store, index), generator) } }
+        }
+
+        fun bind() {
+            list.clear()
+            binders.forEach { list.addAll(it()) }
+        }
+
+        class IndexedContext<out V, out S>(val view: V, val store: S, val index: Int) where V : View
     }
 }
