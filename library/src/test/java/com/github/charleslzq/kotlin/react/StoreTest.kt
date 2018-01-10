@@ -37,7 +37,7 @@ class StoreTest {
 
         init {
             reduce(TestStore::reached) {
-                on<Int>(scheduler = Schedulers.trampoline(), precondition = { it in (0..1) }) {
+                on<Int>(scheduler = Schedulers.trampoline(), require = { it in (0..1) }) {
                     println("reduce $event")
                     if (event == 0) {
                         arrayOf(true, state[1])
