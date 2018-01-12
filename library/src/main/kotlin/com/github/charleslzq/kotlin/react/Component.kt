@@ -13,6 +13,10 @@ import kotlin.reflect.KProperty1
 open class Component<V, S>(val view: V, val store: S) where V : View {
     @PublishedApi internal val children = Children(view, store)
 
+    fun clearBinders()  = children.binders.clear()
+
+    fun clearChildComponents() = children.list.clear()
+
     fun bind(processor: Children<V, S>.() -> Unit) {
         children.apply(processor)
         rebind()
