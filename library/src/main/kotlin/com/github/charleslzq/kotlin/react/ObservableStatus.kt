@@ -12,13 +12,18 @@ import kotlin.reflect.jvm.isAccessible
 /**
  * Created by charleslzq on 17-12-11.
  */
-class ObservableStatus<T>(initialValue: T) : ObservableProperty<T>(initialValue) {
-    private val publisher = PublishSubject.create<Pair<T, T>>()
+class ObservableStatus<T>(
+        initialValue: T,
+        private val filter: (Triple<KProperty<T>, T, T>, (Triple<KProperty<T>, T, T>)->Unit)->Unit = { valueChange, next -> next(valueChange) }
+) : ObservableProperty<T>(initialValue) {
+    private val publisher = PublishSubject.create<Triple<KProperty<T>, T, T>>()
 
-    fun onChange(scheduler: Scheduler = Schedulers.computation(), handler: (Pair<T, T>) -> Unit)
-            = publisher.observeOn(scheduler).subscribe { handler(it) }
+    fun onChange(scheduler: Scheduler = Schedulers.computation(), handler: (Triple<KProperty<T>, T, T>) -> Unit)
+            = publisher.observeOn(scheduler).subscribe { filter(it, handler) }
 
-    override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) = publisher.onNext(oldValue to newValue)
+    override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
+        castOrNull<KProperty<T>>(property)?.let { publisher.onNext(Triple(it, oldValue, newValue)) }
+    }
 
     companion object {
         fun <T> getDelegate(kProperty0: KProperty0<T>): ObservableStatus<T>?
@@ -26,5 +31,18 @@ class ObservableStatus<T>(initialValue: T) : ObservableProperty<T>(initialValue)
 
         fun <T, P> getDelegate(kProperty1: KProperty1<T, P>, receiver: T): ObservableStatus<P>?
                 = kProperty1.apply { isAccessible = true }.getDelegate(receiver)?.let { castOrNull<ObservableStatus<P>>(it) }
+
+        fun <T> compose(vararg filters: (Triple<KProperty<T>, T, T>, (Triple<KProperty<T>, T, T>)->Unit)->Unit)
+                = filters.reduceRight { function, acc -> { valueChange, lastNext ->
+            function(valueChange, { valueChangeParameter ->
+                acc(valueChangeParameter, lastNext)
+            })
+        } }
+
+        fun <T> buildFilter(builder: FilterContext<T>.()->Unit): (Triple<KProperty<T>, T, T>, (Triple<KProperty<T>, T, T>)->Unit)->Unit = { valueChange, next ->
+            builder(FilterContext(valueChange, next))
+        }
+
+        class FilterContext<T>(val valueChange: Triple<KProperty<T>, T, T>, val next: (Triple<KProperty<T>, T, T>)->Unit)
     }
 }

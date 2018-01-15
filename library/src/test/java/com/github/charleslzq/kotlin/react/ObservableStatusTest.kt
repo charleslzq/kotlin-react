@@ -1,5 +1,7 @@
 package com.github.charleslzq.kotlin.react
 
+import com.github.charleslzq.kotlin.react.ObservableStatus.Companion.buildFilter
+import com.github.charleslzq.kotlin.react.ObservableStatus.Companion.compose
 import com.github.charleslzq.kotlin.react.ObservableStatus.Companion.getDelegate
 import io.reactivex.schedulers.Schedulers
 import org.hamcrest.CoreMatchers.`is`
@@ -25,8 +27,8 @@ class ObservableStatusTest {
         var oldValue = -1
         var newValue = -1
         getDelegate(this::data)!!.onChange(Schedulers.trampoline()) {
-            oldValue = it.first
-            newValue = it.second
+            oldValue = it.second
+            newValue = it.third
         }
 
         data = newData
@@ -47,5 +49,30 @@ class ObservableStatusTest {
         data = 4
 
         assertThat("data change received twice", count, `is`(2))
+    }
+
+    @Test
+    fun testFiltersWork() {
+        class Test {
+            var count = 0
+            var data by ObservableStatus(0, compose(
+                    buildFilter {
+                        println("filter1, $valueChange")
+                        count++
+                        next(valueChange)
+                    },
+                    buildFilter {
+                        println("filter2, $valueChange")
+                        count++
+                        next(valueChange)
+                    }
+            ))
+        }
+        val test = Test()
+        getDelegate(test::data)!!.onChange(Schedulers.trampoline()) { test.count++ }
+
+        test.data = 5
+
+        assertThat("data change received twice", test.count, `is`(3))
     }
 }
