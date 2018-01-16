@@ -8,12 +8,7 @@ import kotlin.reflect.KMutableProperty1
 /**
  * Created by charleslzq on 17-12-27.
  */
-inline fun <reified T> castOrNull(target: Any): T? {
-    return when (target) {
-        is T -> target
-        else -> null
-    }
-}
+inline fun <reified T> castOrNull(target: Any): T? = target as? T
 
 typealias DispatchAction<S> = (S, (Any) -> Unit, Array<out Any>) -> Unit
 
@@ -44,25 +39,14 @@ abstract class Store<S>(vararg middleWare: (Any, (Any) -> Unit, (Any) -> Unit, A
 
     private fun buildDispatch(vararg middleWare: (Any, (Any) -> Unit, (Any) -> Unit, Any) -> Unit): (Any) -> Unit {
         val rawDispatch = subject::onNext
-        return when (middleWare.size) {
-            0 -> rawDispatch
-            else -> {
-                val composedMiddleware = middleWare.map {
-                    { next: (Any) -> Unit, event: Any ->
-                        it(this, rawDispatch, next, event)
-                    }
-                }.reduceRight { function, composed ->
-                    { lastNext: (Any) -> Unit, event: Any ->
-                        function({ parameterEvent ->
-                            composed(lastNext, parameterEvent)
-                        }, event)
-                    }
-                }
-                return { event ->
-                    composedMiddleware(rawDispatch, event)
-                }
+        val composedMiddleware = middleWare.map {
+            { next: (Any) -> Unit, event: Any -> it(this, rawDispatch, next, event) }
+        }.reduceRight { function, composed ->
+            { lastNext: (Any) -> Unit, event: Any ->
+                function({ parameterEvent -> composed(lastNext, parameterEvent) }, event)
             }
         }
+        return { event -> composedMiddleware(rawDispatch, event) }
     }
 
     companion object {

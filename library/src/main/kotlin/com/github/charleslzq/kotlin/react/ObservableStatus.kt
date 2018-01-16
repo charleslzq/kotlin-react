@@ -37,9 +37,10 @@ class ObservableStatus<T>(
             function(valueChange, { valueChangeParameter ->
                 acc(valueChangeParameter, lastNext)
             })
-        } }
+        }
+        }
 
-        fun <T> buildFilter(builder: FilterContext<T>.()->Unit): (Triple<KProperty<T>, T, T>, (Triple<KProperty<T>, T, T>)->Unit)->Unit = { valueChange, next ->
+        fun <T> buildFilter(builder: FilterContext<T>.() -> Unit) = { valueChange: Triple<KProperty<T>, T, T>, next: (Triple<KProperty<T>, T, T>) -> Unit ->
             builder(FilterContext(valueChange, next))
         }
 
