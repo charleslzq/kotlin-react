@@ -1,7 +1,6 @@
 package com.github.charleslzq.kotlin.react
 
 import android.view.View
-import com.github.charleslzq.kotlin.react.ObservableStatus.Companion.getDelegate
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlin.reflect.KProperty0
@@ -36,38 +35,39 @@ open class Component<V, S>(val view: V, val store: S) where V : View {
         scheduler: Scheduler = AndroidSchedulers.mainThread(),
         crossinline require: () -> Boolean = { true },
         crossinline handler: (P) -> Unit
-    ) = getDelegate(property, store)?.run {
-        { newValue: P -> if (require()) handler(newValue) }.let {
-            it(property.get(store))
-            onChange(scheduler) { it(property.get(store)) }
-        }
-    } ?: throw IllegalAccessException("Not Observable Property, Can't render")
+    ) = RenderSupport.render(property, store, scheduler, require, handler)
 
     inline fun <P> render(
         property: KProperty0<P>,
         scheduler: Scheduler = AndroidSchedulers.mainThread(),
         crossinline require: () -> Boolean = { true },
         crossinline handler: (P) -> Unit
-    ) = getDelegate(property)?.run {
-        { newValue: P -> if (require()) handler(newValue) }.let {
-            it(property.get())
-            onChange(scheduler) { it(property.get()) }
-        }
-    } ?: throw IllegalAccessException("Not Observable Property, Can't render")
+    ) = RenderSupport.render(property, scheduler, require, handler)
 
     inline fun renderByAll(
         vararg properties: KProperty1<S, *>,
         scheduler: Scheduler = AndroidSchedulers.mainThread(),
         crossinline require: () -> Boolean = { true },
         crossinline handler: () -> Unit
-    ) = properties.forEach { render(it, scheduler, require) { handler() } }
+    ) = RenderSupport.renderByAllWithKProperty1(
+        properties = *properties,
+        store = store,
+        scheduler = scheduler,
+        require = require,
+        handler = handler
+    )
 
     inline fun renderByAll(
         vararg properties: KProperty0<*>,
         scheduler: Scheduler = AndroidSchedulers.mainThread(),
         crossinline require: () -> Boolean = { true },
         crossinline handler: () -> Unit
-    ) = properties.forEach { render(it, scheduler, require) { handler() } }
+    ) = RenderSupport.renderByAllWithKProperty0(
+        properties = *properties,
+        scheduler = scheduler,
+        require = require,
+        handler = handler
+    )
 
     class Children<V, S>(private val view: V, private val store: S) where V : View {
         @PublishedApi
@@ -83,13 +83,7 @@ open class Component<V, S>(val view: V, val store: S) where V : View {
             generator: IndexedContext<SV, S>.() -> T
         ) where SV : View, T : Component<SV, SS> = binders.add {
             findViews(view).mapIndexed { index, sv ->
-                with(
-                    IndexedContext(
-                        sv,
-                        store,
-                        index
-                    ), generator
-                )
+                with(IndexedContext(sv, store, index), generator)
             }
         }
 
