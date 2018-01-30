@@ -8,13 +8,14 @@ import kotlin.reflect.KProperty1
 /**
  * Created by charleslzq on 18-1-29.
  */
-object RenderSupport {
-    inline fun <S, P> render(
+interface WithStore<S> {
+    val store: S
+
+    fun <P> render(
         property: KProperty1<S, P>,
-        store: S,
         scheduler: Scheduler = AndroidSchedulers.mainThread(),
-        crossinline require: () -> Boolean = { true },
-        crossinline handler: (P) -> Unit
+        require: () -> Boolean = { true },
+        handler: (P) -> Unit
     ) = ObservableStatus.getDelegate(property, store)?.run {
         { newValue: P -> if (require()) handler(newValue) }.let {
             it(property.get(store))
@@ -22,11 +23,11 @@ object RenderSupport {
         }
     } ?: throw IllegalAccessException("Not Observable Property, Can't render")
 
-    inline fun <P> render(
+    fun <P> render(
         property: KProperty0<P>,
         scheduler: Scheduler = AndroidSchedulers.mainThread(),
-        crossinline require: () -> Boolean = { true },
-        crossinline handler: (P) -> Unit
+        require: () -> Boolean = { true },
+        handler: (P) -> Unit
     ) = ObservableStatus.getDelegate(property)?.run {
         { newValue: P -> if (require()) handler(newValue) }.let {
             it(property.get())
@@ -34,18 +35,17 @@ object RenderSupport {
         }
     } ?: throw IllegalAccessException("Not Observable Property, Can't render")
 
-    inline fun <S> renderByAllWithKProperty1(
+    fun renderByAll(
         vararg properties: KProperty1<S, *>,
-        store: S,
         scheduler: Scheduler = AndroidSchedulers.mainThread(),
-        crossinline require: () -> Boolean = { true },
-        crossinline handler: () -> Unit
-    ) = properties.forEach { render(it, store, scheduler, require) { handler() } }
+        require: () -> Boolean = { true },
+        handler: () -> Unit
+    ) = properties.forEach { render(it, scheduler, require) { handler() } }
 
-    inline fun renderByAllWithKProperty0(
+    fun renderByAll(
         vararg properties: KProperty0<*>,
         scheduler: Scheduler = AndroidSchedulers.mainThread(),
-        crossinline require: () -> Boolean = { true },
-        crossinline handler: () -> Unit
+        require: () -> Boolean = { true },
+        handler: () -> Unit
     ) = properties.forEach { render(it, scheduler, require) { handler() } }
 }

@@ -1,15 +1,11 @@
 package com.github.charleslzq.kotlin.react
 
 import android.view.View
-import io.reactivex.Scheduler
-import io.reactivex.android.schedulers.AndroidSchedulers
-import kotlin.reflect.KProperty0
-import kotlin.reflect.KProperty1
 
 /**
  * Created by charleslzq on 17-11-27.
  */
-open class Component<V, S>(val view: V, val store: S) where V : View {
+open class Component<V, S>(val view: V, final override val store: S) : WithStore<S> where V : View {
     @PublishedApi
     internal val children = Children(view, store)
 
@@ -29,45 +25,6 @@ open class Component<V, S>(val view: V, val store: S) where V : View {
 
     inline fun <reified T, SV, SS> getChildren(): List<T> where T : Component<SV, SS> =
         children.list.filter { it is T }.map { it as T }
-
-    inline fun <P> render(
-        property: KProperty1<S, P>,
-        scheduler: Scheduler = AndroidSchedulers.mainThread(),
-        crossinline require: () -> Boolean = { true },
-        crossinline handler: (P) -> Unit
-    ) = RenderSupport.render(property, store, scheduler, require, handler)
-
-    inline fun <P> render(
-        property: KProperty0<P>,
-        scheduler: Scheduler = AndroidSchedulers.mainThread(),
-        crossinline require: () -> Boolean = { true },
-        crossinline handler: (P) -> Unit
-    ) = RenderSupport.render(property, scheduler, require, handler)
-
-    inline fun renderByAll(
-        vararg properties: KProperty1<S, *>,
-        scheduler: Scheduler = AndroidSchedulers.mainThread(),
-        crossinline require: () -> Boolean = { true },
-        crossinline handler: () -> Unit
-    ) = RenderSupport.renderByAllWithKProperty1(
-        properties = *properties,
-        store = store,
-        scheduler = scheduler,
-        require = require,
-        handler = handler
-    )
-
-    inline fun renderByAll(
-        vararg properties: KProperty0<*>,
-        scheduler: Scheduler = AndroidSchedulers.mainThread(),
-        crossinline require: () -> Boolean = { true },
-        crossinline handler: () -> Unit
-    ) = RenderSupport.renderByAllWithKProperty0(
-        properties = *properties,
-        scheduler = scheduler,
-        require = require,
-        handler = handler
-    )
 
     class Children<V, S>(private val view: V, private val store: S) where V : View {
         @PublishedApi
