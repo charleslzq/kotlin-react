@@ -14,13 +14,17 @@ import kotlin.reflect.jvm.isAccessible
 /**
  * Created by charleslzq on 17-12-11.
  */
+typealias StatusFilter<T> = (Triple<KProperty<T>, T, T>, (Triple<KProperty<T>, T, T>) -> Unit) -> Unit
+
+fun <T> defaultFilter(): StatusFilter<T> = { valueChange, next ->
+    next(
+        valueChange
+    )
+}
+
 class ObservableStatus<T>(
     initialValue: T,
-    private val filter: (Triple<KProperty<T>, T, T>, (Triple<KProperty<T>, T, T>) -> Unit) -> Unit = { valueChange, next ->
-        next(
-            valueChange
-        )
-    }
+    private val filter: StatusFilter<T> = defaultFilter()
 ) : ObservableProperty<T>(initialValue) {
     private val publisher = PublishSubject.create<Triple<KProperty<T>, T, T>>()
     private val subscribers = mutableListOf<Disposable>()
@@ -58,7 +62,7 @@ class ObservableStatus<T>(
             }
         }
 
-        fun <T> compose(vararg filters: (Triple<KProperty<T>, T, T>, (Triple<KProperty<T>, T, T>) -> Unit) -> Unit) =
+        fun <T> compose(vararg filters: StatusFilter<T>) =
             filters.reduceRight { function, acc ->
                 { valueChange, lastNext ->
                     function(valueChange, { valueChangeParameter ->

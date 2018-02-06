@@ -4,6 +4,8 @@ import io.reactivex.Scheduler
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.KProperty
+import kotlin.reflect.jvm.isAccessible
 
 /**
  * Created by charleslzq on 17-12-27.
@@ -32,7 +34,7 @@ abstract class Store<S>(vararg middleWare: (Any, (Any) -> Unit, (Any) -> Unit, A
                     val rawValue = property.get(store)
                     val newValue = handler(Context(rawValue, it))
                     if (rawValue != newValue) {
-                        property.set(store, newValue)
+                        property.setter.apply { isAccessible = true }.invoke(store, newValue)
                     }
                 }
             }
@@ -51,6 +53,20 @@ abstract class Store<S>(vararg middleWare: (Any, (Any) -> Unit, (Any) -> Unit, A
                 }
             }
         return { event -> composedMiddleware(rawDispatch, event) }
+    }
+
+    class StoreField<S : Store<S>, T>(
+        private val initialValue: T,
+        private val statusFilter: StatusFilter<T> = defaultFilter(),
+        private val init: Reducer<S, T>.() -> Unit = {}
+    ) {
+        operator fun provideDelegate(thisRef: S, kProperty: KProperty<*>): ObservableStatus<T> {
+            val delegate = ObservableStatus(initialValue, statusFilter)
+            castOrNull<KMutableProperty1<S, T>>(kProperty)?.let {
+                thisRef.reduce(it, init)
+            }
+            return delegate
+        }
     }
 
     companion object {

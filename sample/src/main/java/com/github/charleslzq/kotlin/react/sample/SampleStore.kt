@@ -1,6 +1,5 @@
 package com.github.charleslzq.kotlin.react.sample
 
-import com.github.charleslzq.kotlin.react.ObservableStatus
 import com.github.charleslzq.kotlin.react.Store
 
 /**
@@ -10,12 +9,8 @@ class SampleStore : Store<SampleStore>(buildMiddleWare {
     println(event::class.simpleName)
     next(event)
 }) {
-    var count by ObservableStatus(0)
-        private set
-
-    init {
-        reduce(SampleStore::count) {
-            on<ClickEvent> { state + 1 }
-        }
+    var count by StoreField(0) {
+        on<ClickEvent> { state + 1 }
     }
+        private set
 }
