@@ -11,9 +11,9 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.isAccessible
 
-/**
- * Created by charleslzq on 17-12-11.
- */
+        /**
+         * Created by charleslzq on 17-12-11.
+         */
 typealias StatusFilter<T> = (Triple<KProperty<T>, T, T>, (Triple<KProperty<T>, T, T>) -> Unit) -> Unit
 
 fun <T> defaultFilter(): StatusFilter<T> = { valueChange, next ->
